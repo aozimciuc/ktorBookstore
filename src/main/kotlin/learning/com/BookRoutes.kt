@@ -13,17 +13,18 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import learning.com.models.Book
 
 
 @Location("/book/list")
-data class BookListLocation(val sort: String, val order: String)
+data class BookListLocation(val sort: String, val order: String, val page: Int = 1, val pageSize: Int = 10)
 
 fun Route.books() {
-    val dataManager = DataManager()
+    val dataManager = DataManagerMongoDB()
 
     authenticate("bookStoreAuth") {
         get<BookListLocation>() {
-            call.respond(dataManager.allBooks(it.sort, it.order))
+            call.respond(dataManager.allBooks(it.sort, it.order, it.page, it.pageSize))
         }
     }
 
@@ -35,13 +36,11 @@ fun Route.books() {
         put("") {
             val book = call.receive(Book::class)
             val updateBook = dataManager.updateBook(book)
-            call.respond { updateBook }
+            call.respond(updateBook!!)
         }
 
-        post("/{id}") {
-            val id = call.parameters["id"]
+        post("/}") {
             val book = call.receive(Book::class)
-            book.id = id ?: book.id
             dataManager.newBook(book)
             call.respond(book)
         }
