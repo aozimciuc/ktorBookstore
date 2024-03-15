@@ -1,5 +1,6 @@
 package learning.com.plugins
 
+import io.ktor.http.ContentType
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.auth.UserIdPrincipal
@@ -14,7 +15,7 @@ fun Application.configureRouting() {
     routing {
         books()
         get("/") {
-            call.respondText("Hello World!")
+            call.respondText("Hello World!", ContentType.Text.Plain)
         }
 
         authenticate("bookStoreAuth") {

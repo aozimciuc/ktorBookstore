@@ -1,11 +1,10 @@
 package learning.com
 
 import io.ktor.server.application.Application
-import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.locations.Locations
 import io.ktor.server.netty.Netty
 import learning.com.plugins.configureHTTP
+import learning.com.plugins.configureLocations
 import learning.com.plugins.configureMonitoring
 import learning.com.plugins.configureRouting
 import learning.com.plugins.configureSecurity
@@ -18,11 +17,11 @@ fun main() {
         .start(wait = true)
 }
 
-fun Application.module() {
+fun Application.module(testing: Boolean = false) {
     // Locations should be installed first, before any other routing feature
-    install(Locations)
-
+    configureLocations()
     configureTemplating()
+    // security should be installed before routing
     configureSecurity()
     configureMonitoring()
     configureHTTP()

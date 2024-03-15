@@ -24,3 +24,6 @@ http -v -a "user:password" "http://localhost:8080/api/try-auth"
 
 # get book list ordered by title in ascending order
 http -v -a 'user:password' "http://localhost:8080/book/list" sort==title order==asc
+
+# get book list ordered by title in descending order with page 2 and page size 5
+ http -v -a 'user:password' "http://172.21.192.1:8080/book/list" sort==title order==asc page==2 pageSize==5
