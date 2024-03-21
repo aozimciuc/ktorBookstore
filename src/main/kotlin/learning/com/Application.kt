@@ -17,7 +17,9 @@ import learning.com.plugins.configureStatusPages
 import learning.com.plugins.configureTemplating
 
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+    val port = System.getProperty(Constants.APPLICATION_PORT_PROPERTY.value)
+        ?: Constants.DEFAULT_APPLICATION_PORT.value
+    embeddedServer(Netty, port = port.toInt(), host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 

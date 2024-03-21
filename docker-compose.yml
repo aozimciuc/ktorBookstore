@@ -1,10 +1,24 @@
 version: '3'
 services:
+
+  ktorapp:
+    build: .
+    container_name: bookstore
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongotest
+    restart: always
+    networks:
+      - bookstore-network
+
   mongotest:
     image: mongo:latest
     container_name: mongotest
     ports:
       - "27017:27017"
+    networks:
+        - bookstore-network
 #    volumes:
 #      - ./data:/data/db
 #    networks:
@@ -13,3 +27,7 @@ services:
 #      MONGO_INITDB_ROOT_USERNAME: root
 #      MONGO_INITDB_ROOT_PASSWORD: example
 #    restart: always
+
+networks:
+  bookstore-network:
+

@@ -6,6 +6,9 @@ import com.mongodb.client.MongoClients
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
+import learning.com.Constants.MONGO_DB_CONNECTION_PROPERTY
+import learning.com.Constants.DEFAULT_MONGO_DB_CONNECTION_STRING
+import learning.com.Constants.MONGO_DB_NAME
 import learning.com.models.Book
 import learning.com.models.Cart
 import learning.com.models.Session
@@ -30,12 +33,17 @@ object DataManagerMongoDB {
         )
         val codecRegistry =
             CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry)
+
+        val connectionString = System.getProperty(MONGO_DB_CONNECTION_PROPERTY.value)
+            ?: DEFAULT_MONGO_DB_CONNECTION_STRING.value
+
         val clientSettings = MongoClientSettings.builder()
-            .applyConnectionString(ConnectionString("mongodb://localhost:27017"))
+            .applyConnectionString(ConnectionString(connectionString))
             .codecRegistry(codecRegistry)
             .build()
+
         val mongodbClient = MongoClients.create(clientSettings)
-        database = mongodbClient.getDatabase("bookstore")
+        database = mongodbClient.getDatabase(MONGO_DB_NAME.value)
         bookCollection = database.getCollection(Book::class.java.name, Book::class.java)
         cartCollection = database.getCollection(Cart::class.java.name, Cart::class.java)
         initBooks()
@@ -77,10 +85,6 @@ object DataManagerMongoDB {
     fun updateBook(book: Book): Book? {
         bookCollection.replaceOne(Filters.eq("_id", book.id), book)
         return bookCollection.find(Filters.eq("_id", book.id)).first()
-    }
-
-    fun deleteBook(book: Book): Book? {
-        return bookCollection.findOneAndDelete(Filters.eq("_id", book.id))
     }
 
     fun deleteBook(id: String?): Book? {
