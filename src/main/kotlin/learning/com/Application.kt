@@ -1,8 +1,12 @@
 package learning.com
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.server.sessions.Sessions
+import io.ktor.server.sessions.cookie
+import learning.com.models.Session
 import learning.com.plugins.configureHTTP
 import learning.com.plugins.configureLocations
 import learning.com.plugins.configureMonitoring
@@ -28,4 +32,8 @@ fun Application.module(testing: Boolean = false) {
     configureSerialization()
     configureStatusPages()
     configureRouting()
+
+    install(Sessions) {
+        cookie<Session>(Constants.COOKIE_NAME.value)
+    }
 }

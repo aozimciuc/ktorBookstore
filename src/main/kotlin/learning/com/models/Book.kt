@@ -1,10 +1,14 @@
 package learning.com.models
 
-import org.bson.types.ObjectId
+import org.bson.BsonType
+import org.bson.codecs.pojo.annotations.BsonId
+import org.bson.codecs.pojo.annotations.BsonRepresentation
 
-class Book(id: ObjectId?, title: String, author: String, price: Float) {
+class Book(id: String?, title: String, author: String, price: Float) {
 
-    var id: ObjectId?
+    @BsonId
+    @BsonRepresentation(BsonType.OBJECT_ID)
+    var id: String?
     var title: String
     var author: String
     var price: Float

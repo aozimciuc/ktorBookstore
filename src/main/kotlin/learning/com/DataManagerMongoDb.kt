@@ -7,15 +7,20 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import learning.com.models.Book
+import learning.com.models.Cart
+import learning.com.models.Session
+import org.bson.BsonDocument
 import org.bson.Document
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.configuration.CodecRegistry
 import org.bson.codecs.pojo.PojoCodecProvider
+import org.bson.types.ObjectId
 
-class DataManagerMongoDB {
+object DataManagerMongoDB {
 
     val database: MongoDatabase
     val bookCollection: MongoCollection<Book>
+    val cartCollection: MongoCollection<Cart>
 
     init {
         val pojoCodecRegistry: CodecRegistry = CodecRegistries.fromProviders(
@@ -32,7 +37,13 @@ class DataManagerMongoDB {
         val mongodbClient = MongoClients.create(clientSettings)
         database = mongodbClient.getDatabase("bookstore")
         bookCollection = database.getCollection(Book::class.java.name, Book::class.java)
+        cartCollection = database.getCollection(Cart::class.java.name, Cart::class.java)
         initBooks()
+        initCarts()
+    }
+
+    private fun initCarts() {
+        cartCollection.deleteMany(BsonDocument())
     }
 
     private fun initBooks() {
@@ -84,13 +95,56 @@ class DataManagerMongoDB {
         return bookCollection.find().toList()
     }
 
-    // Returns a list of books sorted by the given sort and order
     fun allBooks(sort: String, order: String, page: Int, pageSize: Int): List<Book> {
         return bookCollection.find()
             .sort(Document(mapOf(Pair(sort, if (order == "asc") 1 else -1), Pair("_id", 1))))
             .skip((page - 1) * pageSize)
             .limit(pageSize)
             .toList()
+    }
+
+    fun searchBooks(search: String): List<Book> {
+        return bookCollection.find(
+            Filters.or(
+                Filters.regex("title", ".*$search.*", "i"),
+                Filters.regex("author", ".*$search.*", "i")
+            )
+        ).toList()
+    }
+
+    fun findBookById(id: String): Book {
+        return bookCollection.find(Filters.eq("_id", ObjectId(id))).first() ?: Book()
+    }
+
+    fun findCartBySession(session: Session?): Cart {
+        requireNotNull(session) { "Session is null" }
+        val cartFound = cartCollection.find(Filters.eq("username", session.username)).first()
+        if (cartFound == null) {
+            val newCart = Cart(null, session.username, 0, 0.0f, mutableListOf())
+            cartCollection.insertOne(newCart)
+            return newCart
+        }
+        return cartFound
+    }
+
+    fun updateCart(cart: Cart) {
+        cartCollection.replaceOne(Filters.eq("username", cart.username), cart)
+    }
+
+    fun removeBookFromCart(session: Session?, book: Book) {
+        val cart = findCartBySession(session)
+        cart.removeBook(book)
+        updateCart(cart)
+    }
+
+    fun addBook(session: Session?, book: Book) {
+        val cart = findCartBySession(session)
+        cart.addBook(book)
+        updateCart(cart)
+    }
+
+    fun checkoutCart(cart: Cart) {
+        cartCollection.deleteOne(Filters.eq("_id", cart.id))
     }
 
 }

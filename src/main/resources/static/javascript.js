@@ -1,0 +1,1 @@
+alert("Using JavaScript in a separate file!")

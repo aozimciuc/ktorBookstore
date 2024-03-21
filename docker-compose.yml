@@ -1,0 +1,15 @@
+version: '3'
+services:
+  mongotest:
+    image: mongo:latest
+    container_name: mongotest
+    ports:
+      - "27017:27017"
+#    volumes:
+#      - ./data:/data/db
+#    networks:
+#      - mynetwork
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: example
+#    restart: always

@@ -1,28 +1,19 @@
 package learning.com.plugins
 
-import io.ktor.http.ContentType
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
-import io.ktor.server.auth.UserIdPrincipal
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.principal
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import learning.com.books
+import learning.com.routes.books
+import learning.com.routes.cart
+import learning.com.routes.common
+import learning.com.routes.login
+import learning.com.routes.receipt
 
 fun Application.configureRouting() {
     routing {
+        common()
         books()
-        get("/") {
-            call.respondText("Hello World!", ContentType.Text.Plain)
-        }
-
-        authenticate("bookStoreAuth") {
-            get("/api/try-auth") {
-                val principal = call.principal<UserIdPrincipal>()!!
-                call.respondText("Principal: ${principal.name}. You are authorized to access this API. Enjoy!")
-            }
-        }
+        cart()
+        login()
+        receipt()
     }
 }
