@@ -28,6 +28,23 @@ services:
 #      MONGO_INITDB_ROOT_PASSWORD: example
 #    restart: always
 
+  postgres:
+   image: postgres
+   container_name: bookstore_db
+   restart: always
+   environment:
+     POSTGRES_PASSWORD: password123
+     POSTGRES_USER: bookstore
+     POSTGRES_DB: bookstore
+   volumes:
+    - bookstore-db-data:/var/lib/postgresql/data
+   ports:
+    - "5432:5432"
+   networks:
+    - bookstore-network
+
 networks:
   bookstore-network:
 
+volumes:
+  bookstore-db-data:

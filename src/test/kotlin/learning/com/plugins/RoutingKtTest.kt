@@ -22,11 +22,6 @@ class RoutingKtTest {
 
     @Test
     fun `should test root endpoint`() = testApplication {
-        application {
-            configureLocations()
-            configureSecurity()
-            configureRouting()
-        }
         val response = client.get("/")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("Hello World!", response.bodyAsText())
@@ -59,6 +54,5 @@ class RoutingKtTest {
             assertEquals("Unhandled /other", client.get("/other").bodyAsText())
         }
     }
-
 
 }

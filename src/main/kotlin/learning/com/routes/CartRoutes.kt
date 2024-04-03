@@ -10,7 +10,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.sessions.sessions
 import learning.com.Constants
-import learning.com.DataManagerMongoDB
+import learning.com.peristence.DataManagerMongoDB
 import learning.com.models.Session
 import learning.com.templates.books.BookstoreTemplate
 import learning.com.templates.carts.CartTemplate

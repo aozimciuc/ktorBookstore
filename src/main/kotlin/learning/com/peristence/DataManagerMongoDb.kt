@@ -1,4 +1,4 @@
-package learning.com
+package learning.com.peristence
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings

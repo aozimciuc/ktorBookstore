@@ -10,14 +10,36 @@ import io.ktor.server.routing.post
 import io.ktor.server.sessions.sessions
 import learning.com.Constants
 import learning.com.SecurityHandler
+import learning.com.entities.LogEvents
 import learning.com.models.Session
+import learning.com.peristence.DataManagerPostgres
 import learning.com.templates.login.HomeTemplate
 import learning.com.templates.login.LoginTemplate
 import learning.com.templates.login.LogoutTemplate
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 
+class LoginService(val dbHelper: DataManagerPostgres)  {
+
+    fun logEvent(event: String, severity: String, message: String?) {
+        log.info("Logging event")
+        val result = transaction(db = dbHelper.connect()) {
+            addLogger(StdOutSqlLogger)
+            LogEvents.insert {
+                it[LogEvents.event] = event
+                it[LogEvents.severity] = severity
+                it[LogEvents.message] = message
+            }
+        }
+        log.info("Inserted in log table: ${result.insertedCount} rows")
+    }
+}
+
 val log = LoggerFactory.getLogger("LoginRoutes")
-fun Route.login() {
+fun Route.login(loginService: LoginService) {
 
     get(Endpoints.LOGIN.url) {
         val session = call.sessions.get(Constants.COOKIE_NAME.value) as Session?
@@ -30,6 +52,7 @@ fun Route.login() {
     }
 
     get(Endpoints.HOME.url) {
+        loginService.logEvent(Endpoints.HOME.url, "INFO", "User visited home page")
         val session = call.sessions.get(Constants.COOKIE_NAME.value) as Session?
         call.respondHtmlTemplate(HomeTemplate(session)) {
         }

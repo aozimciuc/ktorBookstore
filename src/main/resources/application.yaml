@@ -1,0 +1,16 @@
+ktor:
+  deployment:
+    host: "localhost"
+    port: 8089
+    watch: [ resources ]
+  application:
+    modules:
+      - learning.com.ApplicationKt.module
+database:
+  url: "jdbc:postgresql://localhost:5432/bookstore"
+  driver: org.postgresql.Driver
+  user: bookstore
+  password: password123
+  isAutocommit: false
+  transactionIsolation: TRANSACTION_REPEATABLE_READ
+  maxPoolSize: 10
