@@ -9,5 +9,9 @@
     <include file="migrations/changelog/ddl/2024-04-add-events-table.sql"/>
     <include file="migrations/changelog/fixtures/2024-05-insert-events-data.sql"/>
     <include file="migrations/changelog/ddl/2024-04-add-log-event-table.sql"/>
+    <include file="migrations/changelog/ddl/2024-04-add-roles-table.sql"/>
+    <include file="migrations/changelog/ddl/2024-04-add-users-table.sql"/>
+    <include file="migrations/changelog/fixtures/2024-05-insert-roles-data.sql"/>
+    <include file="migrations/changelog/fixtures/2024-05-insert-users-data.sql"/>
 
 </databaseChangeLog>

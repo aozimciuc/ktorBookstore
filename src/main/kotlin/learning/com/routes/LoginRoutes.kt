@@ -11,6 +11,7 @@ import io.ktor.server.sessions.sessions
 import learning.com.Constants
 import learning.com.SecurityHandler
 import learning.com.entities.Severity
+import learning.com.entities.UserService
 import learning.com.models.Session
 import learning.com.services.LogService
 import learning.com.templates.login.HomeTemplate
@@ -20,7 +21,7 @@ import org.slf4j.LoggerFactory
 
 
 val log = LoggerFactory.getLogger("LoginRoutes")
-fun Route.login(logService: LogService) {
+fun Route.login(logService: LogService, userService: UserService) {
 
     get(Endpoints.LOGIN.url) {
         val session = call.sessions.get(Constants.COOKIE_NAME.value) as Session?
@@ -37,6 +38,11 @@ fun Route.login(logService: LogService) {
         logService.updateMessage(id, "User visited home page (updated)")
         logService.getAllWithSubselect().forEach { logEvent -> log.info("Log event (subselect): $logEvent") }
         logService.getAllWithJoin().forEach { logEvent -> log.info("Log event (join): $logEvent") }
+
+        // TODO: for demonstration purposes only, remove after user authentication is implemented
+        val user = userService.findUserByName("joe")
+        val usersByRole = userService.findUsersByRoleName("admin")
+        val hasRole = userService.isUserHasRole("joe", "admin")
 
         logService.getAllGroupedByDate()
 

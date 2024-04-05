@@ -22,9 +22,9 @@ import java.time.LocalDate
 import java.util.*
 import javax.sql.DataSource
 
-class LogService(val dataSource: DataSource) {
+class LogServiceImpl(val dataSource: DataSource) : LogService {
 
-    fun logEvent(event: String, severity: Severity, message: String?): UUID? {
+    override fun logEvent(event: String, severity: Severity, message: String?): UUID? {
         log.info("Logging event")
         var entityId: EntityID<UUID>? = null
         transaction(db = Database.connect(dataSource)) {
@@ -42,7 +42,7 @@ class LogService(val dataSource: DataSource) {
 
     suspend fun <T> dbQuery(block: () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
 
-    suspend fun create(logEvent: LogEvent): UUID = dbQuery {
+    override suspend fun create(logEvent: LogEvent): UUID = dbQuery {
         LogEvents.insert {
             it[event] = logEvent.event.id
             it[severity] = logEvent.severity
@@ -53,7 +53,7 @@ class LogService(val dataSource: DataSource) {
     // select all log events and map them to LogEvent objects.
     // Uses subselects to get the event type value and description
     // Inefficient, but demonstrates how to use subselects
-    suspend fun getAllWithSubselect(): List<LogEvent> = dbQuery {
+    override suspend fun getAllWithSubselect(): List<LogEvent> = dbQuery {
         LogEvents.selectAll().map { row ->
             LogEvent(
                 id = row[LogEvents.id].value.toString(),
@@ -72,7 +72,7 @@ class LogService(val dataSource: DataSource) {
         }
     }
 
-    suspend fun getAllWithJoin(): List<LogEvent> = dbQuery {
+    override suspend fun getAllWithJoin(): List<LogEvent> = dbQuery {
         (LogEvents innerJoin EventTypes).selectAll().map { row ->
             LogEvent(
                 id = row[LogEvents.id].value.toString(),
@@ -88,20 +88,46 @@ class LogService(val dataSource: DataSource) {
         }
     }
 
-    suspend fun getAllByDate(date: LocalDate) = dbQuery {
+    override suspend fun getEventsByType() = dbQuery {
 
-        LogEvents.selectAll()
-            .where { LogEvents.timestamp.between(from = date, to=date.plusDays(1)) }
+        (LogEvents innerJoin EventTypes).selectAll()
+            .map {
+                EventType(
+                    id = it[EventTypes.id],
+                    value = it[EventTypes.value],
+                    description = it[EventTypes.description]
+                )
+            }
+    }
+
+    override suspend fun getAllByDate(date: LocalDate): List<LogEvent> = dbQuery {
+
+        (LogEvents innerJoin EventTypes).selectAll()
+            .where { LogEvents.timestamp.between(from = date, to = date.plusDays(1)) }
+            .groupBy(LogEvents.event)
+            .map {
+                LogEvent(
+                    id = it[LogEvents.id].value.toString(),
+                    timestamp = it[LogEvents.timestamp],
+                    event = EventType(
+                        id = it[LogEvents.event],
+                        value = it[EventTypes.value],
+                        description = it[EventTypes.description]
+                    ),
+                    severity = it[LogEvents.severity],
+                    message = it[LogEvents.message]
+                )
+            }
 
     }
 
-    suspend fun updateMessage(id: UUID?, message: String) = dbQuery {
+    override suspend fun updateMessage(id: UUID?, message: String) = dbQuery {
         LogEvents.update({ LogEvents.id eq id }) {
             it[LogEvents.message] = message
         }
     }
 
-    suspend fun getAllGroupedByDate(): List<Map<String, Any?>> = dbQuery {
+    override suspend fun getAllGroupedByDate(): List<Map<String, Any?>> = dbQuery {
         (LogEvents innerJoin EventTypes).select(
             LogEvents.id.count(),
             LogEvents.event,
@@ -133,4 +159,15 @@ class LogService(val dataSource: DataSource) {
             }
     }
 
+}
+
+interface LogService {
+    fun logEvent(event: String, severity: Severity, message: String?): UUID?
+    suspend fun create(logEvent: LogEvent): UUID
+    suspend fun getAllWithSubselect(): List<LogEvent>
+    suspend fun getAllWithJoin(): List<LogEvent>
+    suspend fun getEventsByType(): List<EventType>
+    suspend fun getAllGroupedByDate(): List<Map<String, Any?>>
+    suspend fun getAllByDate(date: LocalDate): List<LogEvent>
+    suspend fun updateMessage(id: UUID?, message: String): Int
 }
