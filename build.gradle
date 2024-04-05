@@ -4,12 +4,14 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.liquibase:liquibase-gradle-plugin:2.2.1"
     }
 }
 
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.9.22'
     id 'io.ktor.plugin' version '2.3.8'
+    id 'org.liquibase.gradle' version '2.2.1'
 }
 
 group "learning.com"
@@ -18,6 +20,8 @@ mainClassName = "learning.com.ApplicationKt"
 
 def isDevelopment = project.ext.has("development")
 applicationDefaultJvmArgs = ["-Dio.ktor.development=$isDevelopment"]
+
+apply plugin: 'org.liquibase.gradle'
 
 repositories {
     mavenCentral()
@@ -33,7 +37,6 @@ shadowJar {
         attributes 'Main-Class': mainClassName
     }
 }
-
 
 dependencies {
     implementation("io.ktor:ktor-server-core-jvm")
@@ -64,6 +67,7 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync:$mongodb_driver_version")
     implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
     implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
     implementation("org.postgresql:postgresql:42.7.3")
@@ -75,4 +79,21 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.0")
     testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
+
+    liquibaseRuntime("org.postgresql:postgresql")
+    liquibaseRuntime 'org.liquibase:liquibase-core:4.16.1'
+    liquibaseRuntime 'org.liquibase:liquibase-groovy-dsl:3.0.2'
+    liquibaseRuntime 'info.picocli:picocli:4.6.1'
+    liquibaseRuntime("org.postgresql:postgresql:42.7.3")
+}
+
+liquibase {
+    activities {
+        register("main") {
+            changeLogFile("migrations/changelog/changelog-master.xml")
+            url("jdbc:postgresql://localhost:5432/bookstore")
+            username("bookstore")
+            password("password123")
+        }
+    }
 }

@@ -6,7 +6,7 @@ import io.ktor.server.netty.EngineMain
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
 import learning.com.models.Session
-import learning.com.peristence.DataManagerPostgres
+import learning.com.peristence.BookstoreDatabaseFactory.createDataSource
 import learning.com.plugins.configureHTTP
 import learning.com.plugins.configureLocations
 import learning.com.plugins.configureMonitoring
@@ -15,7 +15,7 @@ import learning.com.plugins.configureSecurity
 import learning.com.plugins.configureSerialization
 import learning.com.plugins.configureStatusPages
 import learning.com.plugins.configureTemplating
-import learning.com.routes.LoginService
+import learning.com.services.LogService
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
@@ -31,9 +31,9 @@ fun Application.module(testing: Boolean = false) {
     configureSerialization()
     configureStatusPages()
 
-    val dbHelper = DataManagerPostgres(environment)
-    val loginService = LoginService(dbHelper = dbHelper)
-    configureRouting(loginService)
+    val dataSource = createDataSource(environment)
+    val logService = LogService(dataSource = dataSource)
+    configureRouting(logService)
 
     install(Sessions) {
         cookie<Session>(Constants.COOKIE_NAME.value)
